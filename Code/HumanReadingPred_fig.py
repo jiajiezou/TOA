@@ -2,9 +2,9 @@
 """
 Created on Fri May  1 09:41:10 2020
 
-predicting reading time: neighbors
+visualizing the results of eye measures prediction
 
-@author: bme106
+@author: Jiajie
 """
 import pickle
 import numpy as np

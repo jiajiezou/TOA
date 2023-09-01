@@ -4,7 +4,7 @@ Created on Fri May  1 09:41:10 2020
 
 predict self attention
 
-@author: bme106
+@author: Jiajie
 """
 import pickle
 import numpy as np

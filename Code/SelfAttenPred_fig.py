@@ -2,7 +2,7 @@
 """
 Created on Fri May  1 09:41:10 2020
 
-predict self attention
+visualizing the results of attention weights prediction
 
 @author: Jiajie
 """

@@ -1,0 +1,118 @@
+---
+title: "model reading time with LMM"
+author: "Jiajie"
+date: "2023-08-09"
+output: html_document
+---
+
+-   import package
+
+```{r}
+library(tidyverse)
+library(afex)
+library(lmerTest)
+
+```
+
+-   import data
+```{r}
+reason_method = 'model_fine'       # 'model_fine', 'model_pre', 'model_random'
+exs_data = data.frame()
+for (subj_tmp in 0:24) {
+  print(subj_tmp)
+  file_name = paste('./Data/subjs/', reason_method, '_bert_DataSubj_', subj_tmp, '.csv', sep='')
+  exs_data_tmp <- read.csv(file_name)
+  exs_data = rbind(exs_data, exs_data_tmp)
+}
+```
+
+-   factor
+
+```{r}
+exs_data$GL = ifelse(exs_data$Type %in% c('LPurpose', 'Fact', 'Limply'), 0, 1)
+exs_data
+```
+
+-   baseline LMM: hand-crafted factors
+
+```{r}
+lmm_hand <- lmer(read_duration ~ Para_id*GL + RowID*GL + IA_LEFT*GL + RowIdInPara*GL + WordFreq*GL + Word_len*GL + Surprisal*GL + Rationale*GL 
+                            + (1 |Subj_ID) + (1 |Doc_ID), 
+                            data = exs_data, 
+                            control = lmerControl(optimizer = 'bobyqa'))
+isSingular(lmm_hand)
+summary(lmm_hand)
+```
+
+- SAR LMM: hand-crafted factors + SAR attention
+
+```{r}
+lmm_SAR <- lmer(read_duration ~ Para_id*GL + RowID*GL + IA_LEFT*GL + RowIdInPara*GL + WordFreq*GL + Word_len*GL + Surprisal*GL + Rationale*GL + SAR_Atten
+                + (1 |Subj_ID) + (1 |Doc_ID), 
+                data = exs_data, 
+                control = lmerControl(optimizer = 'bobyqa'))
+isSingular(lmm_SAR)
+summary(lmm_SAR)
+anova(lmm_hand, lmm_SAR)
+```
+
+- DNN LMM: hand-crafted factors + transformer-based model attention
+
+```{r}
+lmm_DNN <- lmer(
+  read_duration ~ Para_id*GL + RowID*GL + IA_LEFT*GL + RowIdInPara*GL + WordFreq*GL + Word_len*GL + Surprisal*GL + Rationale*GL
+  + DNN0 + DNN1 + DNN2 + DNN3 + DNN4 + DNN5 + DNN6 + DNN7 + DNN8 + DNN9 + DNN10 + DNN11 
+  + DNN12 + DNN13 + DNN14 + DNN15 + DNN16 + DNN17 + DNN18 + DNN19 + DNN20 + DNN21 + DNN22 + DNN23
+  + DNN24 + DNN25 + DNN26 + DNN27 + DNN28 + DNN29 + DNN30 + DNN31 + DNN32 + DNN33 + DNN34 + DNN35
+  + DNN36 + DNN37 + DNN38 + DNN39 + DNN40 + DNN41 + DNN42 + DNN43 + DNN44 + DNN45 + DNN46 + DNN47
+  + DNN48 + DNN49 + DNN50 + DNN51 + DNN52 + DNN53 + DNN54 + DNN55 + DNN56 + DNN57 + DNN58 + DNN59
+  + DNN60 + DNN61 + DNN62 + DNN63 + DNN64 + DNN65 + DNN66 + DNN67 + DNN68 + DNN69 + DNN70 + DNN71
+  + DNN72 + DNN73 + DNN74 + DNN75 + DNN76 + DNN77 + DNN78 + DNN79 + DNN80 + DNN81 + DNN82 + DNN83
+  + DNN84 + DNN85 + DNN86 + DNN87 + DNN88 + DNN89 + DNN90 + DNN91 + DNN92 + DNN93 + DNN94 + DNN95
+  + DNN96 + DNN97 + DNN98 + DNN99 + DNN100 + DNN101 + DNN102 + DNN103 + DNN104 + DNN105 + DNN106 + DNN107 
+  + DNN108 + DNN109 + DNN110 + DNN111 + DNN112 + DNN113 + DNN114 + DNN115 + DNN116 + DNN117 + DNN118 + DNN119
+  + DNN120 + DNN121 + DNN122 + DNN123 + DNN124 + DNN125 + DNN126 + DNN127 + DNN128 + DNN129 + DNN130 + DNN131
+  + DNN132 + DNN133 + DNN134 + DNN135 + DNN136 + DNN137 + DNN138 + DNN139 + DNN140 + DNN141 + DNN142 + DNN143
+  + (1 |Subj_ID) + (1 |Doc_ID), 
+  data = exs_data, 
+  control = lmerControl(optimizer = 'bobyqa')
+  )
+isSingular(lmm_DNN)
+summary(lmm_DNN)
+```
+
+```{r}
+coef_hand = summary(lmm_hand)$coefficients
+write.csv(coef_hand, paste('./Output/hand_drafted', '.csv', sep=''))
+
+coef_SAR = summary(lmm_SAR)$coefficients
+write.csv(coef_SAR, paste('./Output/SAR', '.csv', sep=''))
+
+
+coef_DNN = summary(lmm_DNN)$coefficients
+write.csv(coef_DNN, paste('./Output/DNN_', reason_method, '.csv', sep=''))
+```
+
+
+```{r}
+reason_method = 'model_fine'    # 'model_fine', 'model_pre', 'model_random'
+coef_DNN = read.csv(paste('./Output/DNN_', reason_method, '.csv', sep=''))
+
+coef_df = data.frame(coef_DNN)
+dnn_weights = coef_df[grep(pattern='DNN*', coef_df$X), 'Estimate']
+summary(dnn_weights)
+
+dnn_weights = coef_df[grep(pattern='DNN*', coef_df$X), 'Std..Error']
+summary(dnn_weights)
+
+dnn_ts = coef_df[grep(pattern='DNN*', coef_df$X), 't.value']
+summary(dnn_ts)
+
+dnn_ps = coef_df[grep(pattern='DNN*', coef_df$X), 'Pr...t..']
+print(mean(dnn_ps<0.05))
+print(mean(dnn_ps<0.001))
+```
+
+
+
+

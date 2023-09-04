@@ -1,6 +1,6 @@
 This folder includes the following components:
 
-- **AttentionMap.zip:** Contains data related to human attention and attention weights of computational models.
+- **AttentionMap.zip:** Contains data related to human attention and attention weights of computational models. You can download the file from [this link](https://drive.google.com/file/d/1JHZx4J-8SJzKUx-TmXqupD0diIS05v-C/view?usp=drive_link)
 
 - **Scripts for Modeling Human Reading:**
   - **HumanReadingPred.py:** Script for modeling eye measures of human reading.
